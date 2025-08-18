@@ -1,0 +1,122 @@
+static char	*expand_token(const char *token, t_ms *ms)
+{
+	char	*result;
+	char	*temp;
+	char	*val;
+	size_t	i;
+	size_t	start;
+
+	if (!token)
+		return (NULL);
+
+	// ✅ Tilde genişletmesi
+	if (check_tilde(token, ms, &result))
+		return (result);
+
+	result = gc_strdup(ms, "");
+	i = 0;
+	while (token[i])
+	{
+		// <<< DEĞİŞİKLİK BAŞLANGIÇ: $'…' bloğu
+		if (token[i] == '$' && token[i + 1] == '\'')
+		{
+			i += 2;  // atla $'
+			start = i;
+			while (token[i] && token[i] != '\'')
+				i++;
+			temp = gc_strndup(ms, token + start, i - start);
+			result = ft_strjoin_free(ms, result, temp);
+			if (token[i] == '\'')
+				i++;  // kapanan tırnağı atla
+			continue;
+		}
+		// <<< DEĞİŞİKLİK BAŞLANGIÇ: $"…' bloğu eklendi
+		if (token[i] == '$' && token[i + 1] == '"')
+		{
+			i += 2;  // atla $"
+			start = i;
+			while (token[i] && token[i] != '"')
+				i++;
+			temp = gc_strndup(ms, token + start, i - start);
+			result = ft_strjoin_free(ms, result, temp);
+			if (token[i] == '"')
+				i++;  // kapanan tırnağı atla
+			continue;
+		}
+		// >>> DEĞİŞİKLİK SON
+
+		if (token[i] == '\'')
+		{
+			start = ++i;
+			while (token[i] && token[i] != '\'')
+				i++;
+			temp = gc_strndup(ms, token + start, i - start);
+			result = ft_strjoin_free(ms, result, temp);
+			if (token[i])
+				i++;
+		}
+		else if (token[i] == '"')
+		{
+			start = ++i;
+			while (token[i] && token[i] != '"')
+			{
+				if (token[i] == '$' && token[i + 1] == '?')
+				{
+					temp = gc_itoa(ms, ms->last_exit);
+					result = ft_strjoin_free(ms, result, temp);
+					i += 2;
+				}
+				else if (token[i] == '$' && (ft_isalnum(token[i + 1]) || token[i + 1] == '_'))
+				{
+					i++;
+					start = i;
+					while (token[i] && (ft_isalnum(token[i]) || token[i] == '_'))
+						i++;
+					temp = gc_strndup(ms, token + start, i - start);
+					val = get_env_value(ms, temp);
+					result = ft_strjoin_free(ms, result, val);
+				}
+				else
+				{
+					result = ft_strjoin_free(ms, result, gc_strndup(ms, &token[i], 1));
+					i++;
+				}
+			}
+			if (token[i] == '"')
+				i++;
+		}
+		else if (token[i] == '$')
+		{
+			if (token[i + 1] == '?')
+			{
+				temp = gc_itoa(ms, ms->last_exit);
+				result = ft_strjoin_free(ms, result, temp);
+				i += 2;
+			}
+			else if (token[i + 1] && (ft_isalnum(token[i + 1]) || token[i + 1] == '_'))
+			{
+				i++;
+				start = i;
+				while (token[i] && (ft_isalnum(token[i]) || token[i] == '_'))
+					i++;
+				temp = gc_strndup(ms, token + start, i - start);
+				val = get_env_value(ms, temp);
+				result = ft_strjoin_free(ms, result, val);
+			}
+			else
+			{
+				result = ft_strjoin_free(ms, result, gc_strdup(ms, "$"));
+				i++;
+			}
+		}
+		else
+		{
+			start = i;
+			while (token[i] && token[i] != '$' && token[i] != '\'' && token[i] != '"')
+				i++;
+			temp = gc_strndup(ms, token + start, i - start);
+			result = ft_strjoin_free(ms, result, temp);
+		}
+	}
+	return (result);
+}

@@ -1,0 +1,7 @@
+--- logs/bash_out.txt	2025-08-10 04:49:47.013874254 +0300
++++ logs/mini_out.txt	2025-08-10 04:49:47.016614355 +0300
+@@ -1 +1,2 @@
+-test
+\ No newline at end of file
++minishell$ echo -n test
++testminishell$ exit

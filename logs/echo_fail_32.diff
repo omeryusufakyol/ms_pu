@@ -1,0 +1,7 @@
+--- logs/bash_out.txt	2025-08-10 04:49:46.987326673 +0300
++++ logs/mini_out.txt	2025-08-10 04:49:46.990082700 +0300
+@@ -1 +1,3 @@
+-hello ""
++minishell$ echo "hello \"$VAR1\""
++hello \\
++minishell$ exit
